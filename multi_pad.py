@@ -60,6 +60,9 @@ def main():
 def hex_to_str(hex_string):
     return "".join([chr(int(hex_string[i:i+2], 16)) for i in range(0, len(hex_string), 2)])
 
+def int_str(h):
+    return [int(h[2 * i : 2 * i + 2], 16) for i in range(len(h) // 2)]
+
 def xor_strings(str1, str2):
     return "".join(chr(ord(a) ^ ord(b)) for a, b in zip(str1, str2))
 
@@ -68,7 +71,7 @@ def encrypt(key, msg):
     return codecs.encode(bytes(c, encoding="utf-8"), "hex")
 
 def decrypt(key, cipher):
-    cipher = "".join([chr(x) for x in hex_to_str(cipher)])
+    cipher = "".join([chr(x) for x in int_str(cipher)])
     return xor_strings(key, cipher)
 
 if __name__ == "__main__":
@@ -76,3 +79,6 @@ if __name__ == "__main__":
     for cyphertext in cyphertexts:
         message = decrypt(key, cyphertext)
         print(message)
+
+    last_ciphertext = decrypt(key,"cbe0fdeae6e0e7b3a9c8a9f9fcfbece5f0a9f9ecec526e1b014a020411074c17111b1c071c4e4f0146430d0d08131d1d010707040017091648461e1d0618444f074c010e19594f0f1f1a07024e1d041719164e1c1652114f411645541b004e244f080213010c004c3b4c0911040e480e070b00310213101c4d0d4e00360b4f151a005253184913040e115454084f010f114554111d1a550f0d52040146e0e7e8e7eae0e8e5a9e0e7fafde0fdfcfde0e6e7a7")
+    print(last_ciphertext)

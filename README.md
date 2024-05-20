@@ -65,3 +65,15 @@ Bitcoin: A purely peer-to-peer version of electronic cash would allow online pay
    1. Do we need to generate a key of that length?
 3. Find what the correct key is...
    1. Bitcoin: A purely peer-to-peer version of electronic cash would allow online payments to be sent directly from one party to another without going through a financial institution.
+
+
+```text
+1f3cb1f3e01f3fd1f3ea1f3e61f3e01f3e71f3b31f3a91f3c81f3a91f3f91f3fc1f3fb1f3ec1f3e51f3f01f3a91f3f91f3ec1f3ec526e1b014a020411074c17111b1c071c4e4f0146430d0d08131d1d010707040017091648461e1d0618444f074c010e19594f0f1f1a07024e1d041719164e1c1652114f411645541b004e244f080213010c004c3b4c0911040e480e070b00310213101c4d0d4e00360b4f151a005253184913040e115454084f010f114554111d1a550f0d520401461f3e01f3e71f3e81f3e71f3ea1f3e01f3e81f3e51f3a91f3e01f3e71f3fa1f3fd1f3e01f3fd1f3fc1f3fd1f3e01f3e61f3e71f3a7
+```
+
+Notice a pattern? why might that be... 🤔
+
+1f3 is use for padding to confuse the xor operation. After removing the below **1f3**, the output is,
+```
+Congratulations on championing the first of many assignments here at the Polkadot Blockchain Academy! We are so glad to have you here! 
+```
