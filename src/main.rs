@@ -1,23 +1,22 @@
-#![allow(dead_code)]
-
 use array_bytes::{bytes2hex, hex2bytes_unchecked};
 
 fn xor_bytes(a: &[u8], b: &[u8]) -> Vec<u8> {
     a.iter().zip(b.iter()).map(|(x, y)| x ^ y).collect()
 }
 
-fn encrypt(key: &[u8], msg: &[u8]) -> String {
-    let c = xor_bytes(key, msg);
+pub fn encrypt(key: &[u8], msg: &str) -> String {
+    let c = xor_bytes(key, msg.as_bytes());
     bytes2hex("", &c)
 }
 
-fn decrypt(key: &[u8], cipher: &[u8]) -> String {
+pub fn decrypt(key: &[u8], cipher: &str) -> String {
     let cipher = hex2bytes_unchecked(cipher);
-    String::from_utf8(xor_bytes(key, &cipher)).expect("Invalid UTF-8")
+    String::from_utf8_lossy(&xor_bytes(key, &cipher)).to_string()
 }
 
 fn main() {
-    let cyphertexts = vec![
+    let key = "Bitcoin: A purely peer-to-peer version of electronic cash would allow online payments to be sent directly from one party to another without going through a financial institution.";
+    let ciphertexts = vec![
         "160111433b00035f536110435a380402561240555c526e1c0e431300091e4f04451d1d490d1c49010d000a0a4510111100000d434202081f0755034f13031600030d0204040e",
         "050602061d07035f4e3553501400004c1e4f1f01451359540c5804110c1c47560a1415491b06454f0e45040816431b144f0f4900450d1501094c1b16550f0b4e151e03031b450b4e020c1a124f020a0a4d09071f16003a0e5011114501494e16551049021011114c291236520108541801174b03411e1d124554284e141a0a1804045241190d543c00075453020a044e134f540a174f1d080444084e01491a090b0a1b4103570740",
         "000000000000001a49320017071704185941034504524b1b1d40500a0352441f021b0708034e4d0008451c40450101064f071d1000100201015003061b0b444c00020b1a16470a4e051a4e114f1f410e08040554154f064f410c1c00180c0010000b0f5216060605165515520e09560e00064514411304094c1d0c411507001a1b45064f570b11480d001d4c134f060047541b185c",
@@ -29,11 +28,11 @@ fn main() {
         "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
     ];
 
-    let cipher: Vec<_> = cyphertexts.iter().map(hex2bytes_unchecked).collect();
+    let cipher: Vec<_> = ciphertexts.iter().map(hex2bytes_unchecked).collect();
 
-    for j in 1..cyphertexts.len() {
+    for j in 1..ciphertexts.len() {
         let mut result = Vec::new();
-        for i in 1..cyphertexts.len() {
+        for i in 1..ciphertexts.len() {
             if i == j {
                 continue;
             }
@@ -50,27 +49,25 @@ fn main() {
         let mut plain_text = vec![b'='; min_length];
 
         for i in 0..min_length {
-            let mut count = 0;
+            let mut count_ = 0;
             let mut count_l = 0;
             let mut curr_letter = 0u8;
             let mut only = true;
             result
                 .iter()
                 .filter(|bytes| bytes.len() > i)
-                .for_each(|bytes| {
-                    for letter in bytes {
-                        if *letter == b'_' {
-                            count += 1;
-                        } else {
-                            count_l += 1;
-                            if curr_letter != 0 && curr_letter == letter.to_ascii_lowercase() {
-                                // do nothing
-                            } else if curr_letter != 0 && curr_letter != letter.to_ascii_lowercase()
-                            {
-                                only = false;
-                            }
-                            curr_letter = letter.to_ascii_lowercase();
+                .map(|bytes| bytes[i])
+                .for_each(|letter| {
+                    if letter == b'_' {
+                        count_ += 1;
+                    } else {
+                        count_l += 1;
+                        if curr_letter != 0 && curr_letter == letter.to_ascii_lowercase() {
+                            // do nothing
+                        } else if curr_letter != 0 && curr_letter != letter.to_ascii_lowercase() {
+                            only = false;
                         }
+                        curr_letter = letter.to_ascii_lowercase();
                     }
                 });
             if count_l == 1 {
@@ -85,5 +82,27 @@ fn main() {
         }
         println!();
         println!("{}", String::from_utf8(plain_text).unwrap());
+    }
+
+    for ciphertext in ciphertexts {
+        let message = decrypt(key.as_bytes(), ciphertext);
+        println!("{}", message);
+    }
+
+    let last_ciphertext = decrypt(key.as_bytes(), "cbe0fdeae6e0e7b3a9c8a9f9fcfbece5f0a9f9ecec526e1b014a020411074c17111b1c071c4e4f0146430d0d08131d1d010707040017091648461e1d0618444f074c010e19594f0f1f1a07024e1d041719164e1c1652114f411645541b004e244f080213010c004c3b4c0911040e480e070b00310213101c4d0d4e00360b4f151a005253184913040e115454084f010f114554111d1a550f0d52040146e0e7e8e7eae0e8e5a9e0e7fafde0fdfcfde0e6e7a7");
+    println!("{}", last_ciphertext);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn encrypt_should_work() {
+        let plaintext = "The Times 03/Jan/2009 Chancellor on brink of second bailout for banks.";
+        let key = "Bitcoin: A purely peer-to-peer version of electronic cash would allow online payments to be sent directly from one party to another without going through a financial institution.";
+        let cipher = "160111433b00035f536110435a380402561240555c526e1c0e431300091e4f04451d1d490d1c49010d000a0a4510111100000d434202081f0755034f13031600030d0204040e";
+
+        assert_eq!(encrypt(key.as_bytes(), plaintext), cipher);
     }
 }
